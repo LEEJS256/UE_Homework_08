@@ -26,9 +26,9 @@ public:
 	UWidgetComponent* m_OverHeadWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CAMERA")
-	USpringArmComponent*	m_SpringArmComp; //½ºÇÁ¸µ¾Ï
+	USpringArmComponent* m_SpringArmComp; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "CAMERA")
-	UCameraComponent*		m_CameraComp;
+	UCameraComponent* m_CameraComp;
 	UFUNCTION(BlueprintPure, Category = "Health")
 	float Get_Health() const;
 	UFUNCTION(BlueprintCallable, Category = "Health")
@@ -43,21 +43,21 @@ public:
 	void Reset_Speed();
 	FString Get_PlayerName() const;
 	void Set_PlayerName(const FString& NewName);
-private:
 
-	//sprint ¿ë º¯¼ö
+private:
+	//sprint ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	float m_fNormalSpeed = 600.f;
 	float m_fSprintSpeed_Multiplier = 1.7f; //600 *1.7 10
-	//float m_fSprintSpeed_Multiplier = 1.7f; //600 *1.7 10
+
 	float m_fSprintSpeed = 0.f;
 
 	float m_fTempSpeed = 0.f;
-	float m_fOriginalMaxSpeed = 0.f; // ¿ø·¡ ¼Óµµ ÀúÀå¿ë
-	//UPROPERTY()
-	//FTimerHandle m_SpeedBoostTimerHandle;
+	float m_fOriginalMaxSpeed = 0.f; // ï¿½ï¿½ï¿½ï¿½ ï¿½Óµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
+
+	int32 ReverserControlStack;
+	bool bIsControlReverse = false;
 
 protected:
-
 	UPROPERTY()
 	FTimerHandle m_SpeedBoostTimerHandle;
 
@@ -70,8 +70,6 @@ protected:
 	float m_fHealth;
 
 protected:
-
-
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -99,14 +97,13 @@ protected:
 	void StartSprint(const FInputActionValue& value);
 	UFUNCTION()
 	void StopSprint(const FInputActionValue& value);
-	
+
 	UFUNCTION()
 	void Input_Pause(const FInputActionValue& value);
 
-	
+
 	void OnDeath();
 	void UpdateOverHeadHp();
-public:
-	
 
+public:
 };

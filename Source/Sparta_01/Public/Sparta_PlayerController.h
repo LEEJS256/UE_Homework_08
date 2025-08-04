@@ -50,10 +50,16 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void Show_GameHUD();
+	UFUNCTION(BlueprintCallable, Category = "HUD")
+	void TurnOff_GameHUD();
 	UFUNCTION(BlueprintCallable, Category = "Menu")
 	void Show_MainMenu(bool bIsReStart =false);
 	UFUNCTION(BlueprintCallable, Category = "Menu")
 	void StartGame();
+	UFUNCTION(BlueprintCallable, Category = "Menu")
+	void EndGame();
+	
+	
 
 protected:
 	virtual void BeginPlay() override;

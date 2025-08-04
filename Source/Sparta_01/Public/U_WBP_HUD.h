@@ -16,30 +16,26 @@ UCLASS()
 class SPARTA_01_API UU_WBP_HUD : public UUserWidget
 {
 	GENERATED_BODY()
-	
 
 public:
-	// À§Á¬ÀÌ »ý¼ºµÉ ¶§ È£Ãâ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ È£ï¿½ï¿½
 	virtual void NativeConstruct() override;
 
 	UPROPERTY()
 	UImage* m_ProgressBar_Time;
-	
+
 	UPROPERTY()
 	UProgressBar* m_ProgressBar_HP;
 	UPROPERTY()
 	UProgressBar* m_ProgressBar_Speed;
 
 	UPROPERTY()
-	class UMaterialInstanceDynamic* m_DynamicMaterialInstance =nullptr;
-public:
+	class UMaterialInstanceDynamic* m_DynamicMaterialInstance = nullptr;
 
-	// Percentage ÆÄ¶ó¹ÌÅÍ ¼³Á¤ ÇÔ¼ö
+public:
+	// Percentage 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	void Set_ProgressBar_Percentage(float arg_Percentage);
-
-
-
 
 
 	float Get_PlayerHP_Percent() const;
@@ -51,18 +47,16 @@ public:
 	void Update_Text_Speed(float speed, float speed_max);
 	void Update_Text_Name(FString& name);
 
-	// Percentage ÆÄ¶ó¹ÌÅÍ °¡Á®¿À±â ÇÔ¼ö
+	// Percentage 
 	UFUNCTION(BlueprintCallable, Category = "HUD")
 	float GetProgressPercentage() const;
 
-	// ¸ÓÆ¼¸®¾ó ÀÎ½ºÅÏ½º ÃÊ±âÈ­ ÇÔ¼ö
 	void InitializeMaterialInstance();
-	
 
 	void PlayTextBlink(const FName& TextBlockName, const FName& AnimationName);
 	void Set_TextBox_Text(const FName& TextBlockName, const FString& Text_value);
 	void Update_TextBox_Level();
-	UWidgetAnimation* FindAnimationByName(FName AnimationName) ;
-private:
+	UWidgetAnimation* FindAnimationByName(FName AnimationName);
 
+private:
 };

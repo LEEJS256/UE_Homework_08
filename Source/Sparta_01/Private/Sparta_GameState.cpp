@@ -23,6 +23,9 @@ ASparta_GameState::ASparta_GameState()
 	m_LevelDuration = 20.f;
 	m_CurrentLevelIndex = 0; 
 	m_MaxLevels = 3;
+	m_MaxWaves = 3;
+	m_WaveDuration = 20.f;
+	m_ItemToSpawnPerWave  ={20, 30, 40};
 }
 
 
@@ -93,11 +96,7 @@ void ASparta_GameState::StartLevel()
 		}
 	}
 
-	//40°³ÀÇ ¾ÆÀÌÅÛ ¼ÒÈ¯
-	//ÄÚÀÎ¾ÆÀÌÅÛ ´Ù¸ÔÀ¸¸é ´ÙÀ½·¹º§·Î ÀÌµ¿
-	//ÇÑ ·¹º§´ç 30ÃÊ
-	//Ã¼·Â 0 ÀÌµÇ¸é °ÔÀÓ¿À¹ö
-	//Á¾·á ÀÌÈÄ Àç½ÃÀÛ
+
 	if (UGameInstance* pGameInstance = GetGameInstance())
 	{
 		USparta_GameInstance* pSparata_GameInstance = Cast<USparta_GameInstance>(pGameInstance);
@@ -106,31 +105,30 @@ void ASparta_GameState::StartLevel()
 			m_CurrentLevelIndex = pSparata_GameInstance->m_CurrentLevelIndex;
 		}
 	}
-	//m
 
 
 
-	TArray<AActor*> FoundVolumes;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnVolume::StaticClass(),FoundVolumes);
-
-	const int32 I_ItemtoSpawn = 40;
-
-	for (int32 i = 0; i < I_ItemtoSpawn; i++)
-	{
-		if (FoundVolumes.Num() > 0)
-		{
-
-			ASpawnVolume* pSpawnVolume = Cast<ASpawnVolume>(FoundVolumes[0]);
-			if (pSpawnVolume)
-			{
-				AActor* SpawnedActor = pSpawnVolume->SpawnRandomItem();
-				if (SpawnedActor && SpawnedActor->IsA(ACoinItem::StaticClass()))
-				{
-					m_SpawnedCoinCount++;
-				}
-			}
-		}
-	}
+	// TArray<AActor*> FoundVolumes;
+	// UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnVolume::StaticClass(),FoundVolumes);
+	//
+	// const int32 I_ItemtoSpawn = 40;
+	//
+	// for (int32 i = 0; i < I_ItemtoSpawn; i++)
+	// {
+	// 	if (FoundVolumes.Num() > 0)
+	// 	{
+	//
+	// 		ASpawnVolume* pSpawnVolume = Cast<ASpawnVolume>(FoundVolumes[0]);
+	// 		if (pSpawnVolume)
+	// 		{
+	// 			AActor* SpawnedActor = pSpawnVolume->SpawnRandomItem();
+	// 			if (SpawnedActor && SpawnedActor->IsA(ACoinItem::StaticClass()))
+	// 			{
+	// 				m_SpawnedCoinCount++;
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 
 	GetWorldTimerManager().SetTimer(
@@ -141,6 +139,8 @@ void ASparta_GameState::StartLevel()
 		false
 	);
 
+	m_CurrentWaveIndex = 0;
+	StartWave();
 
 }
 
@@ -226,18 +226,88 @@ void ASparta_GameState::Update_HUD()
 	}
 }
 
+void ASparta_GameState::StartWave()
+{
+	OnWaveStarted.Broadcast(m_CurrentLevelIndex);
+
+	m_SpawnedCoinCount =0;
+	m_CollectedCoinCount =0;
+
+	for (AActor* Item : m_WaveItem)
+	{
+		if (Item && Item ->IsValidLowLevelFast())
+		{
+			Item->Destroy();
+		}
+	}
+	m_WaveItem.Empty();
+
+	int32 ItemToSpawn = (m_ItemToSpawnPerWave.IsValidIndex(m_CurrentWaveIndex)) ? m_ItemToSpawnPerWave[m_CurrentWaveIndex] : 20;
+
+	if (ASpawnVolume* SpawnVolume = GetSpawnVolume())
+	{
+		for (int32 i = 0; i < ItemToSpawn; i++)
+		{
+			if (AActor* SpawnedActor = SpawnVolume->SpawnRandomItem())
+			{
+				if (SpawnedActor->IsA(ACoinItem::StaticClass()))
+				{
+					m_SpawnedCoinCount++;
+				}
+
+				m_WaveItem.Add(SpawnedActor);
+			}
+		}
+	}
+
+
+
+	GetWorldTimerManager().SetTimer(
+	m_WaveTimerHandle,
+	this,
+	&ThisClass::OnWaveTimeUp,
+	m_WaveDuration,
+	false
+);
+	
+}
+
+void ASparta_GameState::EndWave()
+{
+	GetWorldTimerManager().ClearTimer(m_WaveTimerHandle);
+
+	
+}
+
+void ASparta_GameState::OnWaveTimeUp()
+{
+	EndWave();
+
+	++m_CurrentWaveIndex;
+
+	if (m_CurrentWaveIndex >= m_MaxWaves)
+	{
+		EndLevel();
+	}
+	else
+	{
+		StartWave();
+	}
+	
+}
+
 void ASparta_GameState::Update_HUD_ProgressBar_Time(UUserWidget* pHUDWidget)
 {
 
-	// UU_WBP_HUD·Î Ä³½ºÆÃÇÏ¿© SetProgressPercentage ÇÔ¼ö¿¡ Á¢±Ù
+	// UU_WBP_HUDï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ SetProgressPercentage ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	if (UU_WBP_HUD* pCustomHUD = Cast<UU_WBP_HUD>(pHUDWidget))
 	{
-		// ÁøÇà·ü °è»ê ¹× ¼³Á¤
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		float fRemainTime = GetWorldTimerManager().GetTimerRemaining(m_LevelTimerHandle);
 
 		float fProgress = (fRemainTime / m_LevelDuration); // 0.0 ~ 1.0
 
-		// ÁøÇà·üÀ» ¸ÓÆ¼¸®¾ó ÆÄ¶ó¹ÌÅÍ¿¡ ¼³Á¤
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ï¿½ï¿½ï¿½ ï¿½Ä¶ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 		pCustomHUD->Set_ProgressBar_Percentage(fProgress);
 	}
 
@@ -257,7 +327,7 @@ void ASparta_GameState::Update_HUD_ProgressBar_HP(UUserWidget* pHUDWidget,ASpart
 
 			
 				float f_HP = pPlayer->Get_Health_per();
-				// ¶Ç´Â Á÷Á¢ ÆÛ¼¾Æ®·Î ¼³Á¤
+				// ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Û¼ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				pCustomHUD->Set_PlayerHP_Percent(f_HP); // 75% HP
 				pCustomHUD->Update_Text_HP(pPlayer->Get_Health(), pPlayer->Get_Health_Max()); // 75% HP\
 												
@@ -281,7 +351,7 @@ void ASparta_GameState::Update_HUD_ProgressBar_Speed(UUserWidget* pHUDWidget, AS
 
 
 				float f_Speed = pPlayer->Get_Speed_per();
-				// ¶Ç´Â Á÷Á¢ ÆÛ¼¾Æ®·Î ¼³Á¤
+				// ï¿½Ç´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Û¼ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				pCustomHUD->Set_ProgressBar_Percentage_Speed(f_Speed); // 75% HP
 				pCustomHUD->Update_Text_Speed(pPlayer->Get_Speed(), 2000.f); // 75% HP\
 								
@@ -306,6 +376,15 @@ void ASparta_GameState::Update_HUD_Notice(UUserWidget* pHUDWidget)
 												
 	}
 
+}
+
+
+
+ASpawnVolume* ASparta_GameState::GetSpawnVolume() const
+{
+	TArray<AActor*> SpawnVolumes;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnVolume::StaticClass(), SpawnVolumes);
+	return (SpawnVolumes.Num() > 0) ? Cast<ASpawnVolume>(SpawnVolumes[0]) : nullptr;
 }
 
 void ASparta_GameState::OnGameOver()
