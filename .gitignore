@@ -378,6 +378,4 @@ Binaries/
 *.log
 *.tmp
 
-# Ignore large binary assets
-*.uasset
-*.umap
+
